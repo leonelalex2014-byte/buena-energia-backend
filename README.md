@@ -7,6 +7,20 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## API de administración
+
+El panel Vue usa estos endpoints:
+
+- `POST /api/admin/register`: crea un administrador. Requiere `nombre`, `email`, `password`, `password_confirmation` y `registration_key`.
+- `POST /api/admin/login`: valida `email` y `password`, y devuelve un token Sanctum con vigencia de 12 horas.
+- `POST /api/admin/logout`: revoca el token actual. Requiere `Authorization: Bearer <token>`.
+- `POST /api/admin/productos`: crea el producto y sus variantes dentro de una transacción. Requiere token y los campos `nombre`, `precio`, `categoria` y al menos una variante con `talle`, `color` y `stock`.
+- `GET /api/productos?categoria=Hombre`: consulta el catálogo y sus variantes.
+
+Configura `ADMIN_REGISTRATION_KEY` en el `.env` del servidor con una clave privada y larga. No la incluyas en el frontend ni en el repositorio. Sin esa variable el registro responde `503`; una clave incorrecta responde `403`. Las contraseñas se guardan con hash y el correo debe ser único.
+
+El seeder solo crea un administrador si están definidos `ADMIN_BOOTSTRAP_NAME`, `ADMIN_BOOTSTRAP_EMAIL` y `ADMIN_BOOTSTRAP_PASSWORD`. Las columnas de productos respetan la migración: nombre y categoría hasta 255 caracteres, precio decimal de hasta 10 dígitos y descripción/imagen opcionales; cada variante requiere talle, color y stock entero no negativo.
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

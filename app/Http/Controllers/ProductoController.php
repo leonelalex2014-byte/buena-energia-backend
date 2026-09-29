@@ -9,20 +9,32 @@ use Illuminate\Support\Facades\DB;
 
 class ProductoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
-            // Traemos todos los productos
-            $productos = DB::table('productos')->get();
+            $query = DB::table('productos');
+
+            if ($request->filled('categoria')) {
+                $query->whereRaw('LOWER(categoria) = ?', [mb_strtolower($request->input('categoria'))]);
+            }
+
+            $productos = $query->get();
 
             $productosTransformados = $productos->map(function ($producto) {
 
                 // Consultamos las variantes reales de la tabla creada en la migración
                 $variantes = DB::table('producto_variantes')
                     ->where('id_producto', $producto->id_producto)
-                    ->get();
+                    ->get()
+                    ->map(fn ($variante) => [
+                        'id_variante' => $variante->id_variante,
+                        'talle' => $variante->talle,
+                        'color' => $variante->color,
+                        'stock' => $variante->stock,
+                    ]);
 
                 $colors = $variantes->unique('color')->map(function ($variante) use ($producto) {
+                    $colorName = $variante['color'];
                     $hexMap = [
                         'Gris' => '#6b7280',
                         'Azul' => '#3b82f6',
@@ -46,9 +58,9 @@ class ProductoController extends Controller
                         ];
 
                     return [
-                        'name' => $variante->color,
-                        'hex' => $hexMap[$variante->color] ?? '#000000',
-                        'image' => $imgMap[$variante->color] ?? $producto->imagen
+                        'name' => $colorName,
+                        'hex' => $hexMap[$colorName] ?? '#000000',
+                        'image' => $imgMap[$colorName] ?? $producto->imagen
                     ];
                 })->values();
 
@@ -57,10 +69,12 @@ class ProductoController extends Controller
                     'nombre' => $producto->nombre,
                     'descripcion' => $producto->descripcion,
                     'precio' => $producto->precio,
+                    'categoria' => $producto->categoria,
                     'imagen_url' => $producto->imagen,
                     'es_nuevo' => true,
                     'oferta' => false,
-                    'colors' => $colors
+                    'colors' => $colors,
+                    'variantes' => $variantes->values(),
                 ];
             });
 

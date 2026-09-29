@@ -62,14 +62,19 @@ class ProductoSeeder extends Seeder
             DB::table('producto_variantes')->insert($variantes);
         }
 
-        DB::table('administrador')->updateOrInsert(
-            ['email' => 'leonelalex2014@gmail.com'],
-            [
-                'nombre' => 'Leonel',
-                'contrasena' => bcrypt('alexander500'),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]
-        );
+        $adminEmail = config('admin.bootstrap_email');
+        $adminPassword = config('admin.bootstrap_password');
+
+        if (is_string($adminEmail) && $adminEmail !== '' && is_string($adminPassword) && $adminPassword !== '') {
+            DB::table('administrador')->updateOrInsert(
+                ['email' => $adminEmail],
+                [
+                    'nombre' => config('admin.bootstrap_name', 'Administrador'),
+                    'contrasena' => bcrypt($adminPassword),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+        }
     }
 }
