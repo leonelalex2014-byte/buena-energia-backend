@@ -1,0 +1,2 @@
+$json = '{"prompt": "A realistic blue hoodie on a hanger, product photo, studio light"}'
+Invoke-RestMethod -Uri "http://127.0.0.1:8000/api/productos/generar-imagen" -Method POST -ContentType "application/json; charset=utf-8" -Body ([System.Text.Encoding]::UTF8.GetBytes($json))
