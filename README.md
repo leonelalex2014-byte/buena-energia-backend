@@ -21,6 +21,8 @@ Configura `ADMIN_REGISTRATION_KEY` en el `.env` del servidor con una clave priva
 
 El seeder solo crea un administrador si están definidos `ADMIN_BOOTSTRAP_NAME`, `ADMIN_BOOTSTRAP_EMAIL` y `ADMIN_BOOTSTRAP_PASSWORD`. Las columnas de productos respetan la migración: nombre y categoría hasta 255 caracteres, precio decimal de hasta 10 dígitos y descripción/imagen opcionales; cada variante requiere talle, color y stock entero no negativo.
 
+La creación de productos acepta `imagen_archivo` como multipart (JPG, PNG o WebP, máximo 5 MB) y guarda la imagen en `storage/app/public/productos`. Ejecuta `php artisan storage:link` para exponer esos archivos mediante `/storage`.
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

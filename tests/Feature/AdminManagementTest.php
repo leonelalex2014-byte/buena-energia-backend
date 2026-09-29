@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Models\Administrador;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class AdminManagementTest extends TestCase
@@ -68,6 +70,7 @@ class AdminManagementTest extends TestCase
         $this->assertSame(200, $catalog->status(), $catalog->getContent());
         $catalog->assertJsonPath('0.id_producto', $productId)
             ->assertJsonPath('0.imagen_url', url('/images/test-product.png'))
+            ->assertJsonPath('0.colors.0.image', url('/images/boxer-negro.png'))
             ->assertJsonPath('0.variantes.0.id_variante', 1);
     }
 
@@ -75,6 +78,36 @@ class AdminManagementTest extends TestCase
     {
         $this->postJson('/api/admin/productos', [])->assertUnauthorized();
         $this->assertDatabaseCount('productos', 0);
+    }
+
+    public function test_admin_can_upload_a_product_image(): void
+    {
+        Storage::fake('public');
+        config(['admin.registration_key' => 'test-admin-key']);
+
+        $registration = $this->postJson('/api/admin/register', $this->registrationData());
+        $token = $registration->json('token');
+
+        $response = $this->withToken($token)
+            ->withHeader('Accept', 'application/json')
+            ->post('/api/admin/productos', [
+                'nombre' => 'Sostén de prueba',
+                'descripcion' => 'Imagen cargada desde archivo',
+                'precio' => '320.00',
+                'categoria' => 'Mujer',
+                'imagen_archivo' => UploadedFile::fake()->create('sosten.png', 100, 'image/png'),
+                'variantes' => [
+                    ['talle' => 'M', 'color' => 'Azul', 'stock' => 4],
+                ],
+            ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('product.nombre', 'Sostén de prueba');
+
+        $imageUrl = $response->json('product.imagen_url');
+        $this->assertStringContainsString('/storage/productos/', $imageUrl);
+        $imagePath = substr(parse_url($imageUrl, PHP_URL_PATH), strlen('/storage/'));
+        Storage::disk('public')->assertExists($imagePath);
     }
 
     public function test_product_creation_rejects_missing_database_fields(): void

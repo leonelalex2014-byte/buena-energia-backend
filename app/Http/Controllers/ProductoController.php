@@ -46,9 +46,9 @@ class ProductoController extends Controller
 
                     $imgMap = $isBra
                         ? [
-                            'Rojo' => '/images/red-bra.png',
+                            'Rojo' => '/images/bra-red.png',
                             'Negro' => '/images/bra-classic.png',
-                            'Azul' => '/images/blue-bra.png',
+                            'Azul' => '/images/bra-blue.png',
                         ]
                         : [
                             'Gris' => '/images/boxer-gris.png',
@@ -60,7 +60,7 @@ class ProductoController extends Controller
                     return [
                         'name' => $colorName,
                         'hex' => $hexMap[$colorName] ?? '#000000',
-                        'image' => $imgMap[$colorName] ?? $producto->imagen
+                        'image' => $this->imageUrl($imgMap[$colorName] ?? $producto->imagen),
                     ];
                 })->values();
 
