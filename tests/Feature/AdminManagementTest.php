@@ -44,7 +44,7 @@ class AdminManagementTest extends TestCase
             'descripcion' => 'Algodón suave',
             'precio' => '249.90',
             'categoria' => 'Hombre',
-            'imagen' => 'https://example.com/boxer.jpg',
+            'imagen' => '/images/test-product.png',
             'variantes' => [
                 ['talle' => 'M', 'color' => 'Negro', 'stock' => 8],
                 ['talle' => 'L', 'color' => 'Negro', 'stock' => 0],
@@ -53,6 +53,7 @@ class AdminManagementTest extends TestCase
 
         $productResponse->assertCreated()
             ->assertJsonPath('product.nombre', 'Bóxer de prueba')
+            ->assertJsonPath('product.imagen_url', url('/images/test-product.png'))
             ->assertJsonPath('product.variantes.0.talle', 'M');
 
         $productId = $productResponse->json('product.id_producto');
@@ -66,6 +67,7 @@ class AdminManagementTest extends TestCase
         $catalog = $this->getJson('/api/productos?categoria=hombre');
         $this->assertSame(200, $catalog->status(), $catalog->getContent());
         $catalog->assertJsonPath('0.id_producto', $productId)
+            ->assertJsonPath('0.imagen_url', url('/images/test-product.png'))
             ->assertJsonPath('0.variantes.0.id_variante', 1);
     }
 

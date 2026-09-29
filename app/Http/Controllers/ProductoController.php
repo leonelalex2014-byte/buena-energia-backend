@@ -47,7 +47,7 @@ class ProductoController extends Controller
                     $imgMap = $isBra
                         ? [
                             'Rojo' => '/images/red-bra.png',
-                            'Negro' => '/images/black-bra.png',
+                            'Negro' => '/images/bra-classic.png',
                             'Azul' => '/images/blue-bra.png',
                         ]
                         : [
@@ -70,7 +70,7 @@ class ProductoController extends Controller
                     'descripcion' => $producto->descripcion,
                     'precio' => $producto->precio,
                     'categoria' => $producto->categoria,
-                    'imagen_url' => $producto->imagen,
+                    'imagen_url' => $this->imageUrl($producto->imagen),
                     'es_nuevo' => true,
                     'oferta' => false,
                     'colors' => $colors,
@@ -82,6 +82,19 @@ class ProductoController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
+    }
+
+    private function imageUrl(?string $image): ?string
+    {
+        if (! $image) {
+            return null;
+        }
+
+        if (preg_match('/^https?:\/\//i', $image)) {
+            return $image;
+        }
+
+        return url('/'.ltrim($image, '/'));
     }
 
     /**

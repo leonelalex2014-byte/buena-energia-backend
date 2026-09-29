@@ -15,7 +15,7 @@ class ProductoSeeder extends Seeder
                 'descripcion' => 'Bóxer de algodón suave con elástico personalizado.',
                 'precio' => 180.00,
                 'categoria' => 'Hombre',
-                'imagen' => 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1200&q=80',
+                'imagen' => '/images/boxer-gris.png',
                 'variantes' => [
                     ['talle' => 'M', 'color' => 'Gris', 'stock' => 15],
                     ['talle' => 'L', 'color' => 'Negro', 'stock' => 20],
@@ -28,7 +28,7 @@ class ProductoSeeder extends Seeder
                 'descripcion' => 'Sutién con soporte ligero y diseño clásico para uso diario.',
                 'precio' => 650.00,
                 'categoria' => 'Mujer',
-                'imagen' => 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80',
+                'imagen' => '/images/bra-classic.png',
                 'variantes' => [
                     ['talle' => 'M', 'color' => 'Rojo', 'stock' => 8],
                     ['talle' => 'L', 'color' => 'Negro', 'stock' => 10],

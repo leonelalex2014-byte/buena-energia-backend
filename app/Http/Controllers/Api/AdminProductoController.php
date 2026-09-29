@@ -57,7 +57,9 @@ class AdminProductoController extends Controller
                 'descripcion' => $product->descripcion,
                 'precio' => $product->precio,
                 'categoria' => $product->categoria,
-                'imagen_url' => $product->imagen,
+                'imagen_url' => $product->imagen
+                    ? (preg_match('/^https?:\/\//i', $product->imagen) ? $product->imagen : url('/'.ltrim($product->imagen, '/')))
+                    : null,
                 'variantes' => $product->variantes,
             ],
         ], 201);
