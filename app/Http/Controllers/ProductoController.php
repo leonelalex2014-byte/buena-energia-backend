@@ -40,11 +40,13 @@ class ProductoController extends Controller
                         'Gris' => '#6b7280',
                         'Azul' => '#3b82f6',
                         'Azul marino' => '#1e3a8a',
+                        'Celeste' => '#7dd3fc',
                         'Rojo' => '#ef4444',
                         'Negro' => '#111827',
                         'Blanco' => '#ffffff',
                         'Nude' => '#d6b89c',
                         'Rosa' => '#e879a9',
+                        'Lila' => '#c4a1e8',
                         'Vino' => '#722f37',
                     ];
 
