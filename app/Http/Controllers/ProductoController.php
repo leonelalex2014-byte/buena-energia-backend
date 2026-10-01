@@ -31,6 +31,7 @@ class ProductoController extends Controller
                         'talle' => $variante->talle,
                         'color' => $variante->color,
                         'stock' => $variante->stock,
+                        'imagen_url' => $this->imageUrl($variante->imagen),
                     ]);
 
                 $colors = $variantes->unique('color')->map(function ($variante) use ($producto) {
@@ -38,29 +39,38 @@ class ProductoController extends Controller
                     $hexMap = [
                         'Gris' => '#6b7280',
                         'Azul' => '#3b82f6',
+                        'Azul marino' => '#1e3a8a',
                         'Rojo' => '#ef4444',
-                        'Negro' => '#111827'
+                        'Negro' => '#111827',
+                        'Blanco' => '#ffffff',
+                        'Nude' => '#d6b89c',
+                        'Rosa' => '#e879a9',
+                        'Vino' => '#722f37',
                     ];
 
-                    $isBra = str_contains(strtolower($producto->nombre), 'sutién') || str_contains(strtolower($producto->nombre), 'sutien');
+                    $productName = strtolower($producto->nombre);
+                    $isLegacyBra = str_contains($productName, 'sutién') || str_contains($productName, 'sutien');
+                    $isLegacyBoxer = str_contains($productName, 'bóxer de algodón clásico');
 
-                    $imgMap = $isBra
+                    $imgMap = $isLegacyBra
                         ? [
                             'Rojo' => '/images/bra-red.png',
                             'Negro' => '/images/bra-classic.png',
                             'Azul' => '/images/bra-blue.png',
                         ]
-                        : [
-                            'Gris' => '/images/boxer-gris.png',
-                            'Azul' => '/images/boxer-azul.png',
-                            'Rojo' => '/images/boxer-rojo.png',
-                            'Negro' => '/images/boxer-negro.png',
-                        ];
+                        : ($isLegacyBoxer
+                            ? [
+                                'Gris' => '/images/boxer-gris.png',
+                                'Azul' => '/images/boxer-azul.png',
+                                'Rojo' => '/images/boxer-rojo.png',
+                                'Negro' => '/images/boxer-negro.png',
+                            ]
+                            : []);
 
                     return [
                         'name' => $colorName,
                         'hex' => $hexMap[$colorName] ?? '#000000',
-                        'image' => $this->imageUrl($imgMap[$colorName] ?? $producto->imagen),
+                        'image' => $variante['imagen_url'] ?? $this->imageUrl($imgMap[$colorName] ?? $producto->imagen),
                     ];
                 })->values();
 

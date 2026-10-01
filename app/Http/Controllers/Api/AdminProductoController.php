@@ -25,6 +25,7 @@ class AdminProductoController extends Controller
             'variantes.*.talle' => ['required', 'string', 'max:255'],
             'variantes.*.color' => ['required', 'string', 'max:255'],
             'variantes.*.stock' => ['required', 'integer', 'min:0', 'max:2147483647'],
+            'variantes.*.imagen' => ['nullable', 'string', 'max:255'],
         ]);
 
         $combinations = array_map(

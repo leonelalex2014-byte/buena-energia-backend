@@ -9,7 +9,7 @@ class ProductoVariante extends Model
     protected $table = 'producto_variantes';
     protected $primaryKey = 'id_variante';
 
-    protected $fillable = ['id_producto', 'talle', 'color', 'stock'];
+    protected $fillable = ['id_producto', 'talle', 'color', 'stock', 'imagen'];
 
     public function producto()
     {
