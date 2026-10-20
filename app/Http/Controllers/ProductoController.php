@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Producto;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 
 class ProductoController extends Controller
@@ -109,57 +108,4 @@ class ProductoController extends Controller
         return url('/'.ltrim($image, '/'));
     }
 
-    /**
-     * Envía la descripción de la prenda a ComfyUI para generar la imagen.
-     */
-    public function generarImagen(Request $request)
-    {
-        // 1. Validar la entrada recibida desde el frontend (Vue / Postman)
-        $request->validate([
-            'prompt' => 'required|string',
-        ]);
-
-        // 2. Ruta al JSON que exportamos de ComfyUI
-        $jsonPath = storage_path('app/ropa.json');
-
-        if (!file_exists($jsonPath)) {
-            return response()->json([
-                'error' => 'El archivo ropa.json no se encuentra en storage/app/'
-            ], 404);
-        }
-
-        // 3. Cargar y parsear el workflow en un array PHP
-        $workflow = json_decode(file_get_contents($jsonPath), true);
-
-        // 4. Inyectar datos dinámicos utilizando los IDs exactos de tu ropa.json
-        // Nodo "6": CLIPTextEncode (Prompt Positivo)
-        $workflow['6']['inputs']['text'] = $request->input('prompt');
-
-        // Nodo "3": KSampler (Cambiamos la semilla para variar la imagen)
-        $workflow['3']['inputs']['seed'] = random_int(1, 999999999999999);
-
-        // 5. Enviar la petición HTTP POST a ComfyUI
-        try {
-            $response = Http::timeout(10)->post('http://127.0.0.1:8188/prompt', [
-                'prompt' => $workflow
-            ]);
-
-            if ($response->successful()) {
-                $promptId = $response->json()['prompt_id'];
-
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Generación de imagen iniciada con éxito',
-                    'prompt_id' => $promptId
-                ], 200);
-            }
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'No se pudo conectar con el servidor de ComfyUI (127.0.0.1:8188)',
-                'detalles' => $e->getMessage()
-            ], 500);
-        }
-
-        return response()->json(['error' => 'ComfyUI devolvió una respuesta con error'], 500);
-    }
 }

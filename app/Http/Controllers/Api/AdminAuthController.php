@@ -12,6 +12,14 @@ class AdminAuthController extends Controller
 {
     public function register(Request $request)
     {
+        if (Administrador::query()->exists()) {
+    return response()->json([
+        'message' => 'El registro de administradores está cerrado.',
+    ], 403);
+}
+
+
+
         $validated = $request->validate([
             'nombre' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('administrador', 'email')],

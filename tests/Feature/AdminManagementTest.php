@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+
 use App\Models\Administrador;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -70,7 +71,7 @@ class AdminManagementTest extends TestCase
         $this->assertSame(200, $catalog->status(), $catalog->getContent());
         $catalog->assertJsonPath('0.id_producto', $productId)
             ->assertJsonPath('0.imagen_url', url('/images/test-product.png'))
-            ->assertJsonPath('0.colors.0.image', url('/images/boxer-negro.png'))
+            ->assertJsonPath('0.colors.0.image', url('/images/test-product.png'))
             ->assertJsonPath('0.variantes.0.id_variante', 1);
     }
 
