@@ -13,7 +13,7 @@ El panel Vue usa estos endpoints:
 
 - `POST /api/admin/register`: crea un administrador. Requiere `nombre`, `email`, `password`, `password_confirmation` y `registration_key`.
 - `POST /api/admin/login`: valida `email` y `password`, y devuelve un token Sanctum con vigencia de 12 horas.
-- `POST /api/admin/logout`: revoca el token actual. Requiere `Authorization: Bearer <token>`.
+- `POST /api/admin/logout`: revoca el token actual; requiere token bearer de administrador.
 - `POST /api/admin/productos`: crea el producto y sus variantes dentro de una transacción. Requiere token y los campos `nombre`, `precio`, `categoria` y al menos una variante con `talle`, `color` y `stock`.
 - `GET /api/productos?categoria=Hombre`: consulta el catálogo y sus variantes.
 
@@ -22,6 +22,10 @@ Configura `ADMIN_REGISTRATION_KEY` en el `.env` del servidor con una clave priva
 El seeder solo crea un administrador si están definidos `ADMIN_BOOTSTRAP_NAME`, `ADMIN_BOOTSTRAP_EMAIL` y `ADMIN_BOOTSTRAP_PASSWORD`. Las columnas de productos respetan la migración: nombre y categoría hasta 255 caracteres, precio decimal de hasta 10 dígitos y descripción/imagen opcionales; cada variante requiere talle, color y stock entero no negativo.
 
 La creación de productos acepta `imagen_archivo` como multipart (JPG, PNG o WebP, máximo 5 MB) y guarda la imagen en `storage/app/public/productos`. Ejecuta `php artisan storage:link` para exponer esos archivos mediante `/storage`.
+
+## Guía de estudio
+
+Para estudiar el backend archivo por archivo, consulta la [guía de estudio](docs/guia-estudio-backend.md) o su [versión PDF](docs/guia-estudio-backend.pdf). Explica controladores, modelos, configuración, migraciones, seeders y pruebas, además de los recorridos de pedido, stock, autenticación e imágenes.
 
 ## About Laravel
 

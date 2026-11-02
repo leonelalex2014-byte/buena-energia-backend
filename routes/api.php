@@ -18,6 +18,7 @@ Route::prefix('admin')->group(function () {
     Route::middleware(['auth:sanctum', 'abilities:admin'])->group(function () {
         Route::post('/logout', [AdminAuthController::class, 'logout']);
         Route::post('/productos', [AdminProductoController::class, 'store']);
+        Route::patch('/productos/{producto}', [AdminProductoController::class, 'update'])->whereNumber('producto');
         Route::patch('/variantes/{variantId}/stock', [AdminProductoController::class, 'updateStock']);
         Route::get('/pedidos', [PedidoController::class, 'adminIndex']);
         Route::patch('/pedidos/{orderId}', [PedidoController::class, 'updateStatus']);
