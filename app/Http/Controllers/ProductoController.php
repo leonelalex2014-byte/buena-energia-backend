@@ -4,14 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Producto;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ProductoController extends Controller
 {
     public function index(Request $request)
     {
         try {
-            $query = DB::table('productos');
+            $query = Producto::query()->with('variantes');
 
             if ($request->filled('categoria')) {
                 $query->whereRaw('LOWER(categoria) = ?', [mb_strtolower($request->input('categoria'))]);
@@ -21,10 +21,8 @@ class ProductoController extends Controller
 
             $productosTransformados = $productos->map(function ($producto) {
 
-                // Consultamos las variantes reales de la tabla creada en la migración
-                $variantes = DB::table('producto_variantes')
-                    ->where('id_producto', $producto->id_producto)
-                    ->get()
+
+                $variantes = $producto->variantes
                     ->map(fn ($variante) => [
                         'id_variante' => $variante->id_variante,
                         'talle' => $variante->talle,
@@ -91,7 +89,9 @@ class ProductoController extends Controller
 
             return response()->json($productosTransformados);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            Log::error('Error al listar productos', ['exception' => $e]);
+
+            return response()->json(['message' => 'No fue posible cargar el catálogo.'], 500);
         }
     }
 
