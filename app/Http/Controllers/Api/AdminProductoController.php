@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Producto;
+use App\Models\ProductoVariante;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -12,6 +14,24 @@ use Throwable;
 
 class AdminProductoController extends Controller
 {
+    public function updateStock(Request $request, int $variantId): JsonResponse
+    {
+        $validated = $request->validate([
+            'stock' => ['required', 'integer', 'min:0', 'max:2147483647'],
+        ]);
+
+        $variant = ProductoVariante::query()->findOrFail($variantId);
+        $variant->update(['stock' => $validated['stock']]);
+
+        return response()->json([
+            'message' => 'Stock actualizado correctamente.',
+            'variant' => [
+                'id_variante' => $variant->id_variante,
+                'stock' => $variant->stock,
+            ],
+        ]);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([

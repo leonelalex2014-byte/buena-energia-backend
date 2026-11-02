@@ -2,12 +2,11 @@
 
 namespace Tests\Feature;
 
-
 use App\Models\Administrador;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class AdminManagementTest extends TestCase
@@ -79,6 +78,65 @@ class AdminManagementTest extends TestCase
     {
         $this->postJson('/api/admin/productos', [])->assertUnauthorized();
         $this->assertDatabaseCount('productos', 0);
+    }
+
+    public function test_admin_can_update_variant_stock_to_zero(): void
+    {
+        config(['admin.registration_key' => 'test-admin-key']);
+        $registration = $this->postJson('/api/admin/register', $this->registrationData());
+        $token = $registration->json('token');
+        $productResponse = $this->withToken($token)->postJson('/api/admin/productos', [
+            'nombre' => 'Producto para inventario',
+            'precio' => '100.00',
+            'categoria' => 'Mujer',
+            'variantes' => [
+                ['talle' => 'M', 'color' => 'Azul', 'stock' => 3],
+            ],
+        ])->assertCreated();
+        $variantId = $productResponse->json('product.variantes.0.id_variante');
+
+        $this->withToken($token)
+            ->patchJson("/api/admin/variantes/{$variantId}/stock", ['stock' => 0])
+            ->assertOk()
+            ->assertJsonPath('variant.id_variante', $variantId)
+            ->assertJsonPath('variant.stock', 0);
+
+        $this->assertDatabaseHas('producto_variantes', [
+            'id_variante' => $variantId,
+            'stock' => 0,
+        ]);
+        $this->getJson('/api/productos')
+            ->assertOk()
+            ->assertJsonPath('0.variantes.0.stock', 0);
+    }
+
+    public function test_stock_update_requires_an_admin_and_rejects_negative_values(): void
+    {
+        $this->patchJson('/api/admin/variantes/1/stock', ['stock' => 0])
+            ->assertUnauthorized();
+
+        config(['admin.registration_key' => 'test-admin-key']);
+        $registration = $this->postJson('/api/admin/register', $this->registrationData());
+        $productResponse = $this->withToken($registration->json('token'))
+            ->postJson('/api/admin/productos', [
+                'nombre' => 'Producto para inventario',
+                'precio' => '100.00',
+                'categoria' => 'Mujer',
+                'variantes' => [
+                    ['talle' => 'M', 'color' => 'Azul', 'stock' => 3],
+                ],
+            ]);
+        $variantId = $productResponse->json('product.variantes.0.id_variante');
+
+        $this->withToken($registration->json('token'))
+            ->patchJson("/api/admin/variantes/{$variantId}/stock", ['stock' => -1])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('stock');
+
+        $this->assertDatabaseHas('producto_variantes', [
+            'id_variante' => $variantId,
+            'stock' => 3,
+        ]);
     }
 
     public function test_admin_can_upload_a_product_image(): void
