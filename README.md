@@ -15,6 +15,8 @@ El panel Vue usa estos endpoints:
 - `POST /api/admin/login`: valida `email` y `password`, y devuelve un token Sanctum con vigencia de 12 horas.
 - `POST /api/admin/logout`: revoca el token actual; requiere token bearer de administrador.
 - `POST /api/admin/productos`: crea el producto y sus variantes dentro de una transacción. Requiere token y los campos `nombre`, `precio`, `categoria` y al menos una variante con `talle`, `color` y `stock`.
+- `GET /api/admin/pedidos?vista=activos&page=1&per_page=10`: lista pedidos activos por defecto; `vista=historial` consulta los entregados o cancelados. Devuelve pedidos paginados, datos de paginación y el contador global de pedidos pendientes.
+- `PATCH /api/admin/pedidos/{id}`: confirma, cancela o entrega un pedido; las transiciones válidas controlan el ajuste de stock.
 - `GET /api/productos?categoria=Hombre`: consulta el catálogo y sus variantes.
 
 Configura `ADMIN_REGISTRATION_KEY` en el `.env` del servidor con una clave privada y larga. No la incluyas en el frontend ni en el repositorio. Sin esa variable el registro responde `503`; una clave incorrecta responde `403`. Las contraseñas se guardan con hash y el correo debe ser único.

@@ -70,8 +70,10 @@ class OrderManagementTest extends TestCase
         $this->withToken($token)
             ->getJson('/api/admin/pedidos')
             ->assertOk()
-            ->assertJsonPath('0.id_pedido', $order)
-            ->assertJsonPath('0.cliente.nombre', 'Cliente de prueba');
+            ->assertJsonPath('orders.0.id_pedido', $order)
+            ->assertJsonPath('orders.0.cliente.nombre', 'Cliente de prueba')
+            ->assertJsonPath('pagination.total', 1)
+            ->assertJsonPath('pending_count', 1);
 
         $this->withToken($token)
             ->patchJson("/api/admin/pedidos/{$order}", ['estado' => 'Confirmado'])
@@ -129,6 +131,65 @@ class OrderManagementTest extends TestCase
             'id_pedido' => $secondOrder,
             'estado' => 'Pendiente',
         ]);
+    }
+
+    public function test_admin_orders_separate_active_and_completed_orders_with_pagination(): void
+    {
+        $variant = $this->createVariant(stock: 10);
+        $confirmedOrder = $this->createOrder($variant, quantity: 1);
+        $pendingOrder = $this->createOrder($variant, quantity: 1);
+        $cancelledOrder = $this->createOrder($variant, quantity: 1);
+        $deliveredOrder = $this->createOrder($variant, quantity: 1);
+        $token = $this->adminToken();
+
+        $this->withToken($token)
+            ->patchJson("/api/admin/pedidos/{$confirmedOrder}", ['estado' => 'Confirmado'])
+            ->assertOk();
+        $this->withToken($token)
+            ->patchJson("/api/admin/pedidos/{$cancelledOrder}", ['estado' => 'Cancelado'])
+            ->assertOk();
+        $this->withToken($token)
+            ->patchJson("/api/admin/pedidos/{$deliveredOrder}", ['estado' => 'Confirmado'])
+            ->assertOk();
+        $this->withToken($token)
+            ->patchJson("/api/admin/pedidos/{$deliveredOrder}", ['estado' => 'Entregado'])
+            ->assertOk();
+
+        $this->withToken($token)
+            ->getJson('/api/admin/pedidos')
+            ->assertOk()
+            ->assertJsonCount(2, 'orders')
+            ->assertJsonPath('orders.0.id_pedido', $pendingOrder)
+            ->assertJsonPath('orders.1.id_pedido', $confirmedOrder)
+            ->assertJsonPath('pagination.total', 2)
+            ->assertJsonPath('pending_count', 1);
+
+        $this->withToken($token)
+            ->getJson('/api/admin/pedidos?vista=historial')
+            ->assertOk()
+            ->assertJsonCount(2, 'orders')
+            ->assertJsonPath('orders.0.id_pedido', $deliveredOrder)
+            ->assertJsonPath('orders.1.id_pedido', $cancelledOrder)
+            ->assertJsonPath('pagination.total', 2)
+            ->assertJsonPath('pending_count', 1);
+
+        $this->withToken($token)
+            ->getJson('/api/admin/pedidos?vista=activos&per_page=1&page=2')
+            ->assertOk()
+            ->assertJsonCount(1, 'orders')
+            ->assertJsonPath('orders.0.id_pedido', $confirmedOrder)
+            ->assertJsonPath('pagination.current_page', 2)
+            ->assertJsonPath('pagination.last_page', 2);
+
+        $this->withToken($token)
+            ->getJson('/api/admin/pedidos?vista=invalida')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('vista');
+
+        $this->withToken($token)
+            ->getJson('/api/admin/pedidos?per_page=51')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('per_page');
     }
 
     public function test_order_management_requires_an_administrator_token(): void

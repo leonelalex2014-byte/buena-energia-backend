@@ -117,15 +117,47 @@ class PedidoController extends Controller
         ], 201);
     }
 
-    public function adminIndex(): JsonResponse
+    public function adminIndex(Request $request): JsonResponse
     {
-        $orders = Pedido::query()
-            ->with(['cliente', 'detalles.variante.producto'])
-            ->orderByDesc('fecha')
-            ->get()
-            ->map(fn (Pedido $order): array => $this->orderData($order));
+        $validated = $request->validate([
+            'vista' => ['sometimes', 'in:activos,historial'],
+            'page' => ['sometimes', 'integer', 'min:1'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
+        ]);
+        $view = $validated['vista'] ?? 'activos';
+        $query = Pedido::query()
+            ->with(['cliente', 'detalles.variante.producto']);
 
-        return response()->json($orders);
+        if ($view === 'historial') {
+            $query->whereIn('estado', ['Cancelado', 'Entregado']);
+        } else {
+            $query->whereIn('estado', ['Pendiente', 'Confirmado']);
+        }
+
+        $perPage = (int) ($validated['per_page'] ?? 10);
+        $total = (clone $query)->count();
+        $lastPage = max(1, (int) ceil($total / $perPage));
+        $page = min((int) ($validated['page'] ?? 1), $lastPage);
+        $orders = $query
+            ->orderByDesc('fecha')
+            ->orderByDesc('id_pedido')
+            ->paginate($perPage, ['*'], 'page', $page);
+        $pendingCount = Pedido::query()
+            ->where('estado', 'Pendiente')
+            ->count();
+
+        return response()->json([
+            'orders' => $orders->getCollection()
+                ->map(fn (Pedido $order): array => $this->orderData($order))
+                ->values(),
+            'pagination' => [
+                'current_page' => $orders->currentPage(),
+                'last_page' => $orders->lastPage(),
+                'per_page' => $orders->perPage(),
+                'total' => $orders->total(),
+            ],
+            'pending_count' => $pendingCount,
+        ]);
     }
 
     public function updateStatus(Request $request, int $orderId): JsonResponse

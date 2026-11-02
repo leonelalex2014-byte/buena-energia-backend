@@ -139,7 +139,7 @@ Los endpoints declarados actualmente son:
 | `POST` | `/api/admin/productos` | Administrador | Crear producto y variantes. |
 | `PATCH` | `/api/admin/productos/{producto}` | Administrador | Editar un producto y sus variantes. |
 | `PATCH` | `/api/admin/variantes/{variantId}/stock` | Administrador | Cambiar existencias de una variante. |
-| `GET` | `/api/admin/pedidos` | Administrador | Listar pedidos. |
+| `GET` | `/api/admin/pedidos` | Administrador | Listar por página los pedidos activos o el historial; acepta `vista`, `page` y `per_page` (máximo 50). |
 | `PATCH` | `/api/admin/pedidos/{orderId}` | Administrador | Cambiar estado del pedido. |
 
 Para pedirle a Laravel su lista efectiva, usa:
@@ -1201,8 +1201,13 @@ El controlador combina el endpoint de compra y el panel administrativo:
 - Solo cuando todas las líneas son válidas crea cliente, pedido `Pendiente` y
   detalles con cantidad y precio unitario actual. El stock no se descuenta en
   este paso. Devuelve HTTP `201` con `orderData()`.
-- `adminIndex()` trae relaciones cliente/detalle/variante/producto y ordena
-  por fecha descendente. `with(...)` reduce consultas repetidas.
+- `adminIndex()` valida la vista (`activos` o `historial`), el número de página
+  y el tamaño de página (máximo 50). Por defecto lista pedidos `Pendiente` y
+  `Confirmado`; el historial lista `Cancelado` y `Entregado`. Trae las
+  relaciones cliente/detalle/variante/producto, ordena por fecha e ID
+  descendentes y devuelve `orders`, `pagination` y `pending_count`.
+  `with(...)` reduce consultas repetidas y el contador de pendientes se calcula
+  para todos los pedidos, no solo para la página actual.
 - `updateStatus()` valida estados destino y bloquea el pedido en transacción.
   Repetir el estado actual es idempotente. Pendiente→Confirmado comprueba todas
   las existencias antes de descontar; Pendiente→Cancelado no afecta stock;
